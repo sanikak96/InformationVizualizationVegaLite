@@ -1,0 +1,211 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "url": "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-12/board_games.csv",
+    "format": {"type": "csv"}
+  },
+  "title": {
+    "text": "Board Games Analysis",
+    "anchor": "middle",
+    "fontSize": 30,
+    "offset": 20
+  },
+  "vconcat": [
+    {
+      "hconcat": [
+        {
+          "width": 400,
+          "height": 400,
+          "mark": "point",
+          "transform": [
+            {"filter": {"param": "bar_selection"}},
+            {"filter": {"param": "legend_selection"}},
+            {
+              "filter": {
+                "field": "category",
+                "oneOf": [
+                  "Trivia",
+                  "Card Game",
+                  "Dice",
+                  "Fantasy",
+                  "Science Fiction",
+                  "Economic"
+                ]
+              }
+            }
+          ],
+          "params": [
+            {
+              "name": "scatter_selection",
+              "select": {"type": "interval", "encodings": ["x", "y"]}
+            },
+            {
+              "name": "legend_selection",
+              "select": {"type": "point", "fields": ["min_age"]},
+              "bind": "legend"
+            }
+          ],
+          "encoding": {
+            "y": {
+              "aggregate": "count",
+              "title": "Number of Games",
+              "scale": {"domain": [0, 50]},
+              "type": "quantitative"
+            },
+            "x": {
+              "field": "year_published",
+              "title": "Year",
+              "scale": {"domain": [1952, 2016]},
+              "type": "temporal",
+              "timeUnit": "year"
+            },
+            "color": {
+              "condition": {
+                "param": "scatter_selection",
+                "field": "min_age",
+                "type": "nominal",
+                "bin": true,
+                "scale": {"range": "category"},
+                "title": "Minimum Age"
+              },
+              "value": "lightgrey"
+            },
+            "size": {
+              "field": "users_rated",
+              "aggregate": "sum",
+              "title": "Total Users Rated"
+            }
+          }
+        },
+        {
+          "width": 200,
+          "height": 400,
+          "params": [
+            {
+              "name": "bar_selection",
+              "select": {
+                "type": "point",
+                "fields": ["category"],
+                "encodings": ["y"],
+                "value": {"x": [0, 500]}
+              }
+            }
+          ],
+          "transform": [
+            {"filter": {"param": "scatter_selection"}},
+            {"filter": {"param": "legend_selection"}},
+            {
+              "filter": {
+                "field": "category",
+                "oneOf": [
+                  "Trivia",
+                  "Card Game",
+                  "Dice",
+                  "Fantasy",
+                  "Science Fiction",
+                  "Economic"
+                ]
+              }
+            }
+          ],
+          "mark": "bar",
+          "encoding": {
+            "y": {
+              "field": "category",
+              "title": "Category",
+              "scale": {
+                "domain": [
+                  "Card Game",
+                  "Economic",
+                  "Dice",
+                  "Fantasy",
+                  "Science Fiction",
+                  "Trivia"
+                ]
+              },
+              "sort": "-x"
+            },
+            "x": {"aggregate": "count", "title": "Number of Games"},
+            "color": {
+              "condition": {
+                "param": "bar_selection",
+                "field": "min_age",
+                "bin": true,
+                "type": "nominal",
+                "title": "Minimum Age",
+                "scale": {"range": "category"}
+              },
+              "value": "lightgrey"
+            },
+            "opacity": {
+              "condition": {"param": "bar_selection", "value": 1},
+              "value": 0.5
+            }
+          }
+        }
+      ]
+    },
+    {
+      "width": 720,
+      "height": 200,
+      "transform": [
+        {"filter": {"param": "scatter_selection"}},
+        {"filter": {"param": "bar_selection"}},
+        {"filter": {"param": "legend_selection"}},
+        {"filter": "datum.average_rating > 0"},
+        {
+          "pivot": "category",
+          "value": "average_rating",
+          "groupby": ["year_published"]
+        }
+      ],
+      "repeat": {
+        "layer": [
+          "Trivia",
+          "Card Game",
+          "Dice",
+          "Fantasy",
+          "Science Fiction",
+          "Economic"
+        ]
+      },
+      "spec": {
+        "layer": [
+          {
+            "mark": {"type": "line", "stroke": "white", "strokeWidth": 4},
+            "encoding": {
+              "x": {
+                "field": "year_published",
+                "type": "temporal",
+                "title": "Year"
+              },
+              "y": {
+                "field": {"repeat": "layer"},
+                "type": "quantitative",
+                "title": "Average Rating",
+                "scale": {"domain": [0, 240]}
+              }
+            }
+          },
+          {
+            "mark": {"type": "line"},
+            "encoding": {
+              "x": {
+                "field": "year_published",
+                "type": "temporal",
+                "title": "Year"
+              },
+              "y": {
+                "field": {"repeat": "layer"},
+                "type": "quantitative",
+                "title": "Average Rating"
+              },
+              "stroke": {"datum": {"repeat": "layer"}, "type": "nominal"}
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "config": {}
+}
